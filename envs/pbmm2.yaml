@@ -1,0 +1,6 @@
+name: pbmm2-sm
+channels:
+  - bioconda
+dependencies:
+  - pbmm2
+  - samtools

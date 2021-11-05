@@ -1,0 +1,21 @@
+name: HG7
+fa: /pasteur/sonic/homes/ldenti/data/hg19-refanno/hs37d5.chroms.fa
+fq: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007_230654_115437_2fl_DC_hifi_reads.fastq
+trf: /pasteur/sonic/homes/ldenti/data/hg19-refanno/human_hs37d5.trf.bed
+par: /pasteur/sonic/homes/ldenti/data/hg19-refanno/hs37d5.PAR.bed
+hap1: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007.asm.hap1.p_ctg.fa
+hap2: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007.asm.hap2.p_ctg.fa
+tier1: /pasteur/sonic/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier1_v0.6.bed
+tier2: /pasteur/sonic/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier2_v0.6.bed
+out: /pasteur/sonic/homes/ldenti/data/pp-hg007/NEW-OUT
+threads: 16
+aligners:
+    - pbmm2
+    - minimap2
+    - ngmlr
+callers:
+    - cutesv
+    - svim
+    - sniffles
+    - pbsv
+    - pp

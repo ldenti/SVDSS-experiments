@@ -1,0 +1,137 @@
+configfile: "config.yaml"
+
+from os.path import join as pjoin
+
+REF = config["fa"]
+PARBED = config["par"]
+HAP1 = config["hap1"]
+HAP2 = config["hap2"]
+TIER1 = config["tier1"]
+TIER2 = config["tier2"]
+
+ODIR = config["out"] # os.getcwd()
+
+# dipcall confidence
+DIPBED = pjoin(ODIR, "dipcall.bed")
+# dipcall confidence on tier 1
+DIPBED1 = pjoin(ODIR, "dipcall.1.bed")
+# dipcall confidence on tier 2
+DIPBED2 = pjoin(ODIR, "dipcall.2.bed")
+
+THREADS = config["threads"]
+
+aligners = []
+for aligner in config["aligners"]:
+    aligners.append(aligner)
+callers = []
+for caller in config["callers"]:
+    callers.append(caller)
+
+
+modes = {"full" : "/dev/null",
+         "fullconf" : DIPBED,
+         "tier1": TIER1,
+         "tier1conf": DIPBED1,
+         "tier2": TIER2,
+         "tier2conf": DIPBED2}
+
+rule run:
+    input:
+        expand(pjoin(ODIR, "{aligner}", "results.csv"),
+               aligner = aligners)
+
+rule format_table:
+    input:
+        expand(pjoin(ODIR, "{{aligner}}", "truvari", "{caller}", "{mode}"),
+            caller = callers,
+            mode = modes)
+    output:
+        csv = pjoin(ODIR, "{aligner}", "results.csv")
+    params:
+        wdir = pjoin(ODIR, "{aligner}", "truvari")
+    shell:
+        """
+        python3 format_truvari_table.py {params.wdir} > {output.csv}
+        """
+
+###############
+### DIPCALL ###
+###############
+
+rule dipcall:
+    input:
+        fa = REF,
+        bed = PARBED,
+        hap1 = HAP1,
+        hap2 = HAP2
+    output:
+        vcf = pjoin(ODIR, "dipcall.vcf.gz"),
+        bed = DIPBED
+    params:
+        wdir = pjoin(ODIR, "dipcall"),
+        prefix = pjoin(ODIR, "dipcall", "prefix"),
+        mak = pjoin(ODIR, "dipcall.mak")
+    threads: THREADS
+    shell:
+        """
+        run-dipcall -t {threads} -x {input.bed} {params.prefix} {input.fa} {input.hap1} {input.hap2} > {params.mak}
+        sed -i "s/\$\@ -/\$\@/g" {params.mak}
+        mkdir -p {params.wdir}
+        make -j 1 -f {params.mak}
+        mv {params.prefix}.dip.vcf.gz {output.vcf}
+        tabix -p vcf {output.vcf}
+        mv {params.prefix}.dip.bed {output.bed}
+        """
+
+rule clean_dipcall:
+    input:
+        vcf = pjoin(ODIR, "dipcall.vcf.gz")
+    output:
+        vcf = pjoin(ODIR, "dipcall.clean.vcf.gz")
+    shell:
+        """
+        python3 clean_dipcall.py {input.vcf} | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
+        """
+
+rule build_dip1:
+    input:
+        tierbed = TIER1,
+        dipbed = DIPBED
+    output:
+        bed = DIPBED1
+    shell:
+        """
+        bedtools intersect -a {input.dipbed} -b {input.tierbed} > {output.bed}
+        """
+
+rule build_dip2:
+    input:
+        tierbed = TIER2,
+        dipbed = DIPBED
+    output:
+        bed = DIPBED2
+    shell:
+        """
+        bedtools intersect -a {input.dipbed} -b {input.tierbed} > {output.bed}
+        """
+
+
+###############
+### TRUVARI ###
+###############
+
+rule truvari:
+    input:
+        fa = REF,
+        vcf = pjoin(ODIR, "{aligner}", "{caller}.vcf.gz"),
+        truth = pjoin(ODIR, "dipcall.clean.vcf.gz"),
+        bed = lambda wildcards: modes[wildcards.mode]
+    output:
+        directory(pjoin(ODIR, "{aligner}", "truvari", "{caller}", "{mode}"))
+    params:
+        bed_flag = lambda wildcards: "" if modes[wildcards.mode] == "/dev/null" else "--includebed " + modes[wildcards.mode]
+    shell:
+        """
+        truvari bench -c {input.vcf} -b {input.truth} -o {output} -f {input.fa} {params.bed_flag} --passonly -r 1000 -p 0.00
+        """
