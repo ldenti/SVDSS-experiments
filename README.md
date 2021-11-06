@@ -6,6 +6,7 @@ Install tools:
 conda install minimap2 pbsv sniffles cutesv svim svim-asm dipcall samtools bcftools pysam biopython
 pip3 install truvari
 
+# We need ngmlr v0.2.8 (master) due to a bug in previous releases
 git clone https://github.com/philres/ngmlr.git
 cd ngmlr
 mkdir build ; cd build
@@ -13,6 +14,8 @@ cmake ..
 make
 
 # pbmm2 will be loaded by snakemake from envs/pbmm2.yaml due to conflicts
+
+# clone and install PingPong
 ```
 
 Dowwnload (hg19) reference and annotations:
@@ -49,6 +52,8 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NI
 * `tier1`: GIAB tier 1
 * `tier2`: GIAB tier 2
 * `out`: output directory (everything will go here)
+* `pingpong_bin`: path to PingPong binary
+* `ngmlr_bin`: path to ngmlr (v0.2.8) binary
 * `threads`: number of threads for each rule that requires more threads
 
 ## HG007

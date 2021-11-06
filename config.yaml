@@ -8,6 +8,8 @@ hap2: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007.asm.hap2.p_ctg.fa
 tier1: /pasteur/sonic/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier1_v0.6.bed
 tier2: /pasteur/sonic/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier2_v0.6.bed
 out: /pasteur/sonic/homes/ldenti/data/pp-hg007/NEW-OUT
+pingpong_bin: "/pasteur/sonic/homes/ldenti/code/PingPong/PingPong"
+ngmlr_bin: "/pasteur/sonic/homes/ldenti/software/ngmlr/bin/ngmlr-0.2.8/ngmlr"
 threads: 16
 aligners:
     - pbmm2

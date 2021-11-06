@@ -11,7 +11,8 @@ RUN = config["name"]
 ODIR = config["out"] # os.getcwd()
 THREADS = config["threads"]
 
-PP_BIN="/pasteur/sonic/homes/ldenti/code/PingPong/PingPong"
+PP_BIN = config["pingpong_bin"]
+NGMLR_BIN = config["ngmlr_bin"]
 
 aligners = []
 for aligner in config["aligners"]:
@@ -83,7 +84,7 @@ rule ngmlr:
     benchmark: pjoin(ODIR, "benchmark", "ngmlr.txt")
     shell:
         """
-        /pasteur/sonic/homes/ldenti/software/ngmlr/bin/ngmlr-0.2.8/ngmlr -t {threads} --rg-id {params.name} -r {input.fa} -q {input.fq} -o {params.sam}
+        {NGMLR_BIN} -t {threads} --rg-id {params.name} -r {input.fa} -q {input.fq} -o {params.sam}
         samtools view -uS {params.sam} | samtools sort -T {output.bam}.sort-tmp > {output.bam}
         samtools index {output.bam}
         """
