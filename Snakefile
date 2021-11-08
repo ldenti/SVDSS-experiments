@@ -43,7 +43,6 @@ rule minimap2:
         name = RUN
     threads: THREADS
     benchmark: pjoin(ODIR, "benchmark", "minimap2.txt")
-    conda: "envs/minimap2.yaml"
     shell:
         """
         minimap2 -ax map-hifi --MD --eqx -Y -R \'@RG\\tID:{params.name}\' -t {threads} {input.fa} {input.fq} -o {params.sam}
