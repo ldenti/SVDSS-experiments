@@ -88,7 +88,7 @@ rule ngmlr:
         samtools index {output.bam}
         """
 
-# Ping-pong reconstructor works better (no corrupted output bam) if input bam is already filtered
+# Ping-pong reconstructor works better if input bam is already filtered
 rule primaligns:
     input:
         bam = pjoin(ODIR, "{aligner}.md.bam")
@@ -199,7 +199,7 @@ rule svim:
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "svim.txt")
     shell:
         """
-        svim alignment --min_sv_size 30 --cluster_max_distance 1.4 {output.odir} {input.bam} {input.fa}
+        svim alignment --min_sv_size 30 --cluster_max_distance 1.4 --tandem_duplications_as_insertions {output.odir} {input.bam} {input.fa}
         """
 
 rule svim_post:
@@ -266,39 +266,36 @@ rule pp_reconstruct:
         fa = REF,
         bam = pjoin(ODIR, "{aligner}.md.primary.bam")
     output:
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.unclean.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.bam")
     params:
         wd = pjoin(ODIR, "{aligner}", "pp")
     threads: THREADS
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pp-2-reconstruct.txt")
     shell:
         """
-        {PP_BIN} reconstruct --reference {input.fa} --bam {input.bam} --workdir {params.wd} --threads {threads}
-        mv {params.wd}/reconstructed.bam {output.bam}
+        {PP_BIN} reconstruct --reference {input.fa} --bam {input.bam} --workdir {params.wd} --threads {threads} --selective
         """
 
-rule pp_cleanreconstruct:
+rule pp_sortreconstruct:
     input:
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.unclean.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.bam")
     output:
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.sorted.bam")
     params:
         sam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.sam"),
         tmpd = pjoin(ODIR, "{aligner}", "pp")
     threads: 1
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pp-3-sort.txt")
     shell:
-        # FIXME we need || true since samtools view returns >0 when reading the bam (that is corrupted)
         """
-        samtools view -h {input.bam} > {params.sam} || true
-        samtools view -bS {params.sam} | samtools sort -T {params.tmpd} > {output.bam}
+        samtools sort -T {output.bam}.sort-tmp {input.bam} > {output.bam}
         samtools index {output.bam}
         """
 
 rule pp_search:
     input:
         fmd = REF + ".fmd",
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.sorted.bam")
     output:
         sfs = pjoin(ODIR, "{aligner}", "pp", "solution_batch_0.assembled.sfs")
     params:
@@ -313,7 +310,7 @@ rule pp_search:
 rule pp_call:
     input:
         fa = REF,
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.bam"),
+        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.sorted.bam"),
         sfs = pjoin(ODIR, "{aligner}", "pp", "solution_batch_0.assembled.sfs")
     output:
         vcf = pjoin(ODIR, "{aligner}", "pp.vcf")

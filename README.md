@@ -38,6 +38,9 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NI
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz.tbi
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier2_v0.6.bed
+
+# Removes MT from VCF header
+zcat HG002_SVs_Tier1_v0.6.vcf.gz | grep -v "ID=MT" | bgzip -c > HG002_SVs_Tier1_v0.6.noMT.vcf.gz
 ```
 
 ### config.yaml
