@@ -1,4 +1,4 @@
-# PingPong - SVs evaluation
+# SVDSS experiments
 
 ## Prerequisites
 Install tools:
@@ -114,7 +114,7 @@ Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-pu
 
 Update `config.yaml` accordingly and run `snakemake`.
 
-### CMRG analysis
+#### CMRG analysis
 ```
 # Download the CMRG callset
 wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz
