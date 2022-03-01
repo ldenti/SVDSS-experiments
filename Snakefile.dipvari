@@ -7,7 +7,9 @@ PARBED = config["par"]
 HAP1 = config["hap1"]
 HAP2 = config["hap2"]
 TIER1 = config["tier1"]
-TIER2 = config["tier2"]
+# TIER2 = config["tier2"]
+# TIER3 = config["tier3"]
+TIER23 = config["tier23"]
 
 ODIR = config["out"] # os.getcwd()
 
@@ -16,7 +18,11 @@ DIPBED = pjoin(ODIR, "dipcall.bed")
 # dipcall confidence on tier 1
 DIPBED1 = pjoin(ODIR, "dipcall.1.bed")
 # dipcall confidence on tier 2
-DIPBED2 = pjoin(ODIR, "dipcall.2.bed")
+#DIPBED2 = pjoin(ODIR, "dipcall.2.bed")
+# dipcall confidence on tier 3
+#DIPBED3 = pjoin(ODIR, "dipcall.3.bed")
+# dipcall confidence on tier 23
+DIPBED23 = pjoin(ODIR, "dipcall.23.bed")
 
 THREADS = config["threads"]
 
@@ -32,8 +38,12 @@ modes = {"full" : "/dev/null",
          "fullconf" : DIPBED,
          "tier1": TIER1,
          "tier1conf": DIPBED1,
-         "tier2": TIER2,
-         "tier2conf": DIPBED2}
+        #  "tier2": TIER2,
+        #  "tier2conf": DIPBED2,
+        #  "tier3": TIER3,
+        #  "tier3conf": DIPBED3,
+         "tier23": TIER23,
+         "tier23conf": DIPBED23}
 
 rule run:
     input:
@@ -116,6 +126,27 @@ rule build_dip2:
         bedtools intersect -a {input.dipbed} -b {input.tierbed} > {output.bed}
         """
 
+rule build_dip3:
+    input:
+        tierbed = TIER3,
+        dipbed = DIPBED
+    output:
+        bed = DIPBED3
+    shell:
+        """
+        bedtools intersect -a {input.dipbed} -b {input.tierbed} > {output.bed}
+        """
+
+rule build_dip23:
+    input:
+        tierbed = TIER23,
+        dipbed = DIPBED
+    output:
+        bed = DIPBED23
+    shell:
+        """
+        bedtools intersect -a {input.dipbed} -b {input.tierbed} > {output.bed}
+        """
 
 ###############
 ### TRUVARI ###

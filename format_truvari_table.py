@@ -25,9 +25,9 @@ def main():
         tool = f.split("/")[-3]
         mode = f.split("/")[-2]
         tp, fp, fn = parse_summary(f)
-        P = round(tp/(tp+fp)*100, 2)
-        R = round(tp/(tp+fn)*100, 2)
-        F = round(2*(P*R)/(P+R), 2)
+        P = round(tp/(tp+fp)*100, 1)
+        R = round(tp/(tp+fn)*100, 1)
+        F = round(2*(P*R)/(P+R) if P+R != 0 else 0.0, 1)
         print(mode, tool, tp, fp, fn, P, R, F, sep = ",")
 
 

@@ -1,0 +1,5 @@
+name: debreak-sm
+channels:
+  - bioconda
+dependencies:
+  - debreak

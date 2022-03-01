@@ -1,15 +1,17 @@
 name: HG7
-fa: /pasteur/sonic/homes/ldenti/data/hg19-refanno/hs37d5.chroms.fa
-fq: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007_230654_115437_2fl_DC_hifi_reads.fastq
-trf: /pasteur/sonic/homes/ldenti/data/hg19-refanno/human_hs37d5.trf.bed
-par: /pasteur/sonic/homes/ldenti/data/hg19-refanno/hs37d5.PAR.bed
-hap1: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007.asm.hap1.p_ctg.fa
-hap2: /pasteur/sonic/homes/ldenti/data/pp-hg007/HG007.asm.hap2.p_ctg.fa
-tier1: /pasteur/sonic/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier1_v0.6.bed
-tier2: /pasteur/sonic/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier2_v0.6.bed
-out: /pasteur/sonic/homes/ldenti/data/pp-hg007/NEW-OUT
-pingpong_bin: "/pasteur/sonic/homes/ldenti/code/PingPong/PingPong"
-ngmlr_bin: "/pasteur/sonic/homes/ldenti/software/ngmlr/bin/ngmlr-0.2.8/ngmlr"
+fa: /pasteur/appa/homes/ldenti/data/hg38-refanno/hg38.chroms.fa
+fq: /pasteur/appa/homes/ldenti/data/pp-hg007/HG007_230654_115437_2fl_DC_hifi_reads.fastq
+trf: /pasteur/appa/homes/ldenti/data/hg38-refanno/human_GRCh38_no_alt_analysis_set.trf.bed
+par: /pasteur/appa/homes/ldenti/data/hg38-refanno/hs38.PAR.bed
+hap1: /pasteur/appa/homes/ldenti/data/pp-hg007/HG007.asm.hap1.p_ctg.fa
+hap2: /pasteur/appa/homes/ldenti/data/pp-hg007/HG007.asm.hap2.p_ctg.fa
+tier1: /pasteur/appa/homes/ldenti/data/hg38-refanno/Tier1_v0.6.hg38.noalt.bed
+# tier2: . # GIAB tier 2
+# tier3: . # GIAB tier 3
+tier23: /pasteur/appa/homes/ldenti/data/hg38-refanno/Tier23_v0.6.hg38.noalt.bed
+out: /pasteur/appa/homes/ldenti/data/pp-hg007/OUT-hg38-5x
+pingpong_bin: /pasteur/appa/homes/ldenti/code/SVDSS/SVDSS
+ngmlr_bin: /pasteur/appa/homes/ldenti/software/ngmlr/bin/ngmlr-0.2.8/ngmlr
 threads: 16
 aligners:
     - pbmm2
@@ -21,3 +23,5 @@ callers:
     - sniffles
     - pbsv
     - pp
+    - debreak
+    # - sniffles2

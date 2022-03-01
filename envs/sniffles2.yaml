@@ -1,0 +1,5 @@
+name: sniffles2-sm
+channels:
+  - bioconda
+dependencies:
+  - sniffles=2.0.2

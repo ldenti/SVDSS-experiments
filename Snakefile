@@ -21,6 +21,8 @@ callers = []
 for caller in config["callers"]:
     callers.append(caller)
 
+
+
 rule run:
     input:
         expand(pjoin(ODIR, "{aligner}", "{caller}.vcf.gz"),
@@ -88,7 +90,7 @@ rule ngmlr:
         samtools index {output.bam}
         """
 
-# Ping-pong reconstructor works better if input bam is already filtered
+# This is just for SVDSS
 rule primaligns:
     input:
         bam = pjoin(ODIR, "{aligner}.md.bam")
@@ -115,7 +117,7 @@ rule pbsv_discover:
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pbsv-1.txt")
     shell:
         """
-        pbsv discover --tandem-repeats {input.bed} {input.bam} {output.svsig}
+	    pbsv discover --tandem-repeats {input.bed} {input.bam} {output.svsig}
         """
 
 rule pbsv_call:
@@ -130,6 +132,7 @@ rule pbsv_call:
         """
         pbsv call -j {threads} --ccs -t INS,DEL {input.fa} {input.svsig} {output.vcf}
         """
+# -m 20
 
 rule pbsv_post:
     input:
@@ -157,6 +160,7 @@ rule cutesv:
         mkdir -p {params.wdir}
         cuteSV -t {threads} -s 2 --max_cluster_bias_INS 1000 --diff_ratio_merging_INS 0.9 --max_cluster_bias_DEL 1000 --diff_ratio_merging_DEL 0.5 {input.bam} {input.fa} {output.vcf} {params.wdir}
         """
+# -l 30
 
 rule cutesv_post:
     input:
@@ -169,26 +173,6 @@ rule cutesv_post:
         sed -i '4 a ##INFO=<ID=STRAND,Number=1,Type=String,Description="Strand ? (line manually added)">' {output.vcf}
         """
 
-# rule cutesv_w:
-#     input:
-#         fa = REF,
-#         bam = BAM
-#     output:
-#         vcf = pjoin(ODIR, "cutesv-w{w}.vcf")
-#     params:
-#         wdir = pjoin(ODIR, "cutesv-w{w}"),
-#         vcf = pjoin(ODIR, "cutesv-w{w}", "variations.vcf"),
-#         w = "{w}"
-#     threads: THREADS
-#     benchmark: pjoin(ODIR, "benchmark", "cutesv-w{w}.txt")
-#     shell:
-#         """
-#         mkdir -p {params.wdir}
-#         cuteSV -t {threads} -s {params.w} --max_cluster_bias_INS 1000 --diff_ratio_merging_INS 0.9 --max_cluster_bias_DEL 1000 --diff_ratio_merging_DEL 0.5 {input.bam} {input.fa} {params.vcf} {params.wdir}
-#         grep -v 'INV\|DUP\|BND' {params.vcf} > {output.vcf}
-#         """
-
-
 rule svim:
     input:
         fa = REF,
@@ -199,7 +183,7 @@ rule svim:
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "svim.txt")
     shell:
         """
-        svim alignment --min_sv_size 30 --cluster_max_distance 1.4 --tandem_duplications_as_insertions {output.odir} {input.bam} {input.fa}
+        svim alignment --min_sv_size 30 --cluster_max_distance 1.4 --interspersed_duplications_as_insertions --tandem_duplications_as_insertions {output.odir} {input.bam} {input.fa}
         """
 
 rule svim_post:
@@ -215,40 +199,71 @@ rule svim_post:
         | sed 's/DUP:INT/INS/g' \
         | sed 's/DUP:TANDEM/INS/g' \
         | awk '{{ if($1 ~ /^#/) {{ print $0 }} else {{ if($5=="<DEL>" || $5=="<INS>") {{ print $0 }} }} }}' \
-        | grep -v 'SUPPORT=1;\|SUPPORT=2;\|SUPPORT=3;\|SUPPORT=4;\|SUPPORT=5;\|SUPPORT=6;\|SUPPORT=7;\|SUPPORT=8;\|SUPPORT=9;' \
+        | grep -v 'SUPPORT=1;' \
         | sed 's/q5/PASS/g' > {output.vcf}
         """
+# | grep -v 'SUPPORT=1;\|SUPPORT=2;\|SUPPORT=3;' \
 
 
-rule sniffles:
+# rule sniffles2:
+#     input:
+#         fa = REF,
+#         bam = pjoin(ODIR, "{aligner}.md.bam"),
+#         bed = TRF
+#     output:
+#         vcf = pjoin(ODIR, "{aligner}", "sniffles2", "variations.vcf")
+#     threads: THREADS
+#     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "sniffles2.txt")
+#     conda: "envs/sniffles2.yaml"
+#     shell:
+#         """
+#         sniffles --input {input.bam} --vcf {output.vcf} --reference {input.fa} --tandem-repeats {input.bed} --threads {threads} --minsupport 2 --minsvlen 30
+#         """
+
+# rule sniffles2_post:
+#     input:
+#         vcf = pjoin(ODIR, "{aligner}", "sniffles2", "variations.vcf")
+#     output:
+#         vcf = pjoin(ODIR, "{aligner}", "sniffles2.vcf")
+#     shell:
+#         """
+#         cat <(cat {input.vcf} | grep "^#") <(cat {input.vcf} | grep -vE "^#" | grep 'DUP\|INS\|DEL' | sed 's/DUP/INS/g' | sort -k1,1 -k2,2g) > {output.vcf}
+#         """
+
+rule debreak:
     input:
-        bam = pjoin(ODIR, "{aligner}.md.bam")
+        fa = REF,
+        bam = pjoin(ODIR, "{aligner}.md.bam"),
+        bed = TRF
     output:
-        vcf = pjoin(ODIR, "{aligner}", "sniffles", "variations.vcf")
+        vcf = pjoin(ODIR, "{aligner}", "debreak", "debreak.vcf")
+    params:
+        odir = pjoin(ODIR, "{aligner}", "debreak"),
+        aligner = "{aligner}"
+    threads: THREADS
+    benchmark: pjoin(ODIR, "benchmark", "{aligner}", "debreak.txt")
+    conda: "envs/debreak.yaml"
+    shell:
+        """
+        debreak --bam {input.bam} --outpath {params.odir} --rescue_large_ins --poa --ref {input.fa} --min_size 30 --min_support 2 --aligner params.aligner --thread {threads}
+        """
+
+rule debreak_post:
+    input:
+        debreak = pjoin(ODIR, "{aligner}", "debreak", "debreak.vcf"),
+        pp = pjoin(ODIR, "{aligner}", "pp.vcf")
+    output:
+        vcf = pjoin(ODIR, "{aligner}", "debreak.vcf")
     threads: 1
-    benchmark: pjoin(ODIR, "benchmark", "{aligner}", "sniffles.txt")
     shell:
         """
-        sniffles --ccs_reads -s 2 -l 30 -m {input.bam} -v {output.vcf} --genotype
-        """
-
-rule sniffles_post:
-    input:
-        vcf = pjoin(ODIR, "{aligner}", "sniffles", "variations.vcf")
-    output:
-        vcf = pjoin(ODIR, "{aligner}", "sniffles.vcf")
-    shell:
-        """
-        cat <(cat {input.vcf} | grep "^#") <(cat {input.vcf} | grep -vE "^#" | grep 'DUP\|INS\|DEL' | sed 's/DUP/INS/g' | sort -k1,1 -k2,2g) > {output.vcf}
-        sed -i '4 a ##FILTER=<ID=STRANDBIAS,Description="Strand is biased.">' {output.vcf}
+        bash clean_debreak.sh {input.debreak} {input.pp} > {output.vcf}
         """
 
 
-
-################
-### PINGPONG ###
-################
-
+#############
+### SVDSS ###
+#############
 rule pp_index:
     input:
         fa = REF
@@ -261,29 +276,26 @@ rule pp_index:
         {PP_BIN} index --fastq {input.fa} --index {output.fmd}
         """
 
-rule pp_reconstruct:
+rule pp_smooth:
     input:
         fa = REF,
         bam = pjoin(ODIR, "{aligner}.md.primary.bam")
     output:
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "smoothed.selective.bam")
     params:
         wd = pjoin(ODIR, "{aligner}", "pp")
     threads: THREADS
-    benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pp-2-reconstruct.txt")
+    benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pp-2-smooth.txt")
     shell:
         """
-        {PP_BIN} reconstruct --reference {input.fa} --bam {input.bam} --workdir {params.wd} --threads {threads} --selective
+        {PP_BIN} smooth --reference {input.fa} --bam {input.bam} --workdir {params.wd} --threads {threads}
         """
 
-rule pp_sortreconstruct:
+rule pp_sortsmoothed:
     input:
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "smoothed.selective.bam")
     output:
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.sorted.bam")
-    params:
-        sam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.sam"),
-        tmpd = pjoin(ODIR, "{aligner}", "pp")
+        bam = pjoin(ODIR, "{aligner}", "pp", "smoothed.selective.sorted.bam")
     threads: 1
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pp-3-sort.txt")
     shell:
@@ -295,7 +307,7 @@ rule pp_sortreconstruct:
 rule pp_search:
     input:
         fmd = REF + ".fmd",
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.sorted.bam")
+        bam = pjoin(ODIR, "{aligner}", "pp", "smoothed.selective.sorted.bam")
     output:
         sfs = pjoin(ODIR, "{aligner}", "pp", "solution_batch_0.assembled.sfs")
     params:
@@ -304,13 +316,13 @@ rule pp_search:
     benchmark: pjoin(ODIR, "benchmark", "{aligner}", "pp-4-search.txt")
     shell:
         """
-        {PP_BIN} search --index {input.fmd} --bam {input.bam} --threads {threads} --workdir {params.wd} --assemble --putative
+        {PP_BIN} search --index {input.fmd} --bam {input.bam} --threads {threads} --workdir {params.wd} --assemble
         """
 
 rule pp_call:
     input:
         fa = REF,
-        bam = pjoin(ODIR, "{aligner}", "pp", "reconstructed.selective.sorted.bam"),
+        bam = pjoin(ODIR, "{aligner}", "pp", "smoothed.selective.sorted.bam"),
         sfs = pjoin(ODIR, "{aligner}", "pp", "solution_batch_0.assembled.sfs")
     output:
         vcf = pjoin(ODIR, "{aligner}", "pp.vcf")
@@ -321,7 +333,7 @@ rule pp_call:
     shell:
         """
         n=$(ls {params.wd}/solution_batch_*.assembled.sfs | wc -l)
-        {PP_BIN} call --reference {input.fa} --bam {input.bam} --threads {threads} --workdir {params.wd} --batches ${{n}}
+        {PP_BIN} call --reference {input.fa} --bam {input.bam} --threads {threads} --workdir {params.wd} --batches ${{n}} --min-cluster-weight 2
         mv {params.wd}/svs_poa.vcf {output.vcf}
         """
 
