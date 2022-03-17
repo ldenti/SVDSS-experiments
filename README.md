@@ -109,8 +109,8 @@ python3 check_exclusive.py plot hg007.tier23conf.ppexclusive.dist
 
 ## HG002
 Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/deepconsensus_predictions/hg002_15kb/two_smrt_cells/HG002_15kb_222723_002822_2fl_DC_hifi_reads.fastq) and corresponding haplotypes:
-* [HG007.asm.hap1.p_ctg.fa](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/analysis/genome_assembly/hg002_15kb/two_smrt_cells/dc/HG002.asm.hap1.p_ctg.fa)
-* [HG007.asm.hap2.p_ctg.fa](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/analysis/genome_assembly/hg002_15kb/two_smrt_cells/dc/HG002.asm.hap2.p_ctg.fa)
+* [HG002.asm.hap1.p_ctg.fa](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/analysis/genome_assembly/hg002_15kb/two_smrt_cells/dc/HG002.asm.hap1.p_ctg.fa)
+* [HG002.asm.hap2.p_ctg.fa](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/analysis/genome_assembly/hg002_15kb/two_smrt_cells/dc/HG002.asm.hap2.p_ctg.fa)
 
 Update `config.yaml` accordingly and run `snakemake`.
 
