@@ -205,6 +205,29 @@ rule svim_post:
 # | grep -v 'SUPPORT=1;\|SUPPORT=2;\|SUPPORT=3;' \
 
 
+rule sniffles:
+    input:
+        bam = pjoin(ODIR, "{aligner}.md.bam")
+    output:
+        vcf = pjoin(ODIR, "{aligner}", "sniffles", "variations.vcf")
+    threads: 1
+    benchmark: pjoin(ODIR, "benchmark", "{aligner}", "sniffles.txt")
+    shell:
+        """
+        sniffles --ccs_reads -s 2 -l 30 -m {input.bam} -v {output.vcf} --genotype
+        """
+
+rule sniffles_post:
+    input:
+        vcf = pjoin(ODIR, "{aligner}", "sniffles", "variations.vcf")
+    output:
+        vcf = pjoin(ODIR, "{aligner}", "sniffles.vcf")
+    shell:
+        """
+        cat <(cat {input.vcf} | grep "^#") <(cat {input.vcf} | grep -vE "^#" | grep 'DUP\|INS\|DEL' | sed 's/DUP/INS/g' | sort -k1,1 -k2,2g) > {output.vcf}
+        sed -i '4 a ##FILTER=<ID=STRANDBIAS,Description="Strand is biased.">' {output.vcf}
+        """
+
 # rule sniffles2:
 #     input:
 #         fa = REF,
