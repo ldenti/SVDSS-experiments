@@ -58,6 +58,9 @@ The file `config.yaml` is used to tweak snakemake execution:
 * **aligners**: list of aligners to use
 * **callers**: list of callers to use
 
+### Truth VCFs
+For users convenience, we provide the three VCFs computed with dipcall against hg38 and used as groundtruth in our analysis (see `truthsets` folder).
+
 ## HG007
 Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/deepconsensus_predictions/hg002_15kb/two_smrt_cells/HG002_15kb_222723_002822_2fl_DC_hifi_reads.fastq) and corresponding haplotypes:
 * [HG007.asm.hap1.p_ctg.fa](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/analysis/genome_assembly/hg007_15kb/two_smrt_cells/dc/HG007.asm.hap1.p_ctg.fa)
