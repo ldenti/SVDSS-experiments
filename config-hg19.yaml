@@ -1,0 +1,28 @@
+name: HG2
+fa: /pasteur/appa/homes/ldenti/data/hg19-refanno/hs37d5.chroms.fa
+fq: /pasteur/appa/homes/ldenti/data/pp-hg002/HG002_15kb_222723_002822_2fl_DC_hifi_reads.fastq
+trf: /pasteur/appa/homes/ldenti/data/hg19-refanno/human_hs37d5.trf.bed
+par: /pasteur/appa/homes/ldenti/data/hg19-refanno/hs37d5.PAR.bed
+vcf: /pasteur/appa/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier1_v0.6.noMT.clean.vcf.gz
+hap1: /pasteur/appa/homes/ldenti/data/pp-hg002/HG002.asm.hap1.p_ctg.fa
+hap2: /pasteur/appa/homes/ldenti/data/pp-hg002/HG002.asm.hap2.p_ctg.fa
+tier1: /pasteur/appa/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier1_v0.6.bed
+tier2: . # GIAB tier 2
+tier3: . # GIAB tier 3
+tier23: /pasteur/appa/homes/ldenti/data/hg19-refanno/HG002_SVs_Tier23_v0.6.bed
+out: /pasteur/appa/homes/ldenti/data/pp-hg002/OUT-hg19
+pingpong_bin: /pasteur/appa/homes/ldenti/code/SVDSS/SVDSS
+ngmlr_bin: /pasteur/appa/homes/ldenti/software/ngmlr/bin/ngmlr-0.2.8/ngmlr
+threads: 16
+aligners:
+    - pbmm2
+    # - minimap2
+    # - ngmlr
+callers:
+    - cutesv
+    - svim
+    - sniffles
+    - pbsv
+    - pp
+    - debreak
+    # - sniffles2

@@ -117,6 +117,40 @@ Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-pu
 
 Update `config.yaml` accordingly and run `snakemake`.
 
+
+#### GIAB vs dipcall analysis
+Download (hg19) reference and annotations:
+```
+wget ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/phase2_reference_assembly_sequence/hs37d5.fa.gz
+gunzip hs37d5.fa.gz
+# Extract chromosomes
+samtools faidx hs37d5.fa 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X Y > hs37d5.chroms.fa
+# Map non-ACGT characters to N:
+sed -i '/^[^>]/ y/BDEFHIJKLMNOPQRSUVWXYZbdefhijklmnopqrsuvwxyz/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/' hs37d5.chroms.fa
+
+# Get hg19 PAR region from dipcall repository:
+wget https://raw.githubusercontent.com/lh3/dipcall/master/data/hs37d5.PAR.bed
+
+# Get GIAB VCF and tiers:
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz.tbi
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
+bedtools complement -i HG002_SVs_Tier1_v0.6.bed -g hs37d5.chroms.fa.fai > HG002_SVs_Tier23_v0.6.bed
+```
+
+Update `config.yaml` accordingly (see `config-hg19.yaml`, i.e., everything should point to hg19 and a new output directory) and:
+```
+# run everything on the older reference release
+snakemake --use-conda -p -j 16
+# compare the new results with dipcall (against hg19)
+snakemake -s Snakefile.dipvari -p -j 8
+# compare the new results with the GIAB callset, GIAB vs dipcall, and dipcall vs GIAB
+snakemake -s Snakefile.giabvari -p -j 8
+
+# Heterozygosity plot
+python3 plot_hetebars.py {dipcall.clean.vcf.gz} {GIAB.clean.vcf.gz} ${OUT}/pbmm2/
+```
+
 #### CMRG analysis
 ```
 # Download the CMRG callset
