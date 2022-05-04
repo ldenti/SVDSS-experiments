@@ -6,10 +6,10 @@ par: /pasteur/appa/homes/ldenti/data/hg38-refanno/hs38.PAR.bed
 hap1: /pasteur/appa/homes/ldenti/data/pp-hg007/HG007.asm.hap1.p_ctg.fa
 hap2: /pasteur/appa/homes/ldenti/data/pp-hg007/HG007.asm.hap2.p_ctg.fa
 tier1: /pasteur/appa/homes/ldenti/data/hg38-refanno/Tier1_v0.6.hg38.noalt.bed
-# tier2: . # GIAB tier 2
-# tier3: . # GIAB tier 3
+tier2: . # GIAB tier 2
+tier3: . # GIAB tier 3
 tier23: /pasteur/appa/homes/ldenti/data/hg38-refanno/Tier23_v0.6.hg38.noalt.bed
-out: /pasteur/appa/homes/ldenti/data/pp-hg007/OUT-hg38-5x
+out: /pasteur/appa/homes/ldenti/data/pp-hg007/OUT-hg38
 pingpong_bin: /pasteur/appa/homes/ldenti/code/SVDSS/SVDSS
 ngmlr_bin: /pasteur/appa/homes/ldenti/software/ngmlr/bin/ngmlr-0.2.8/ngmlr
 threads: 16

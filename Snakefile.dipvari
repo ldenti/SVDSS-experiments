@@ -7,8 +7,8 @@ PARBED = config["par"]
 HAP1 = config["hap1"]
 HAP2 = config["hap2"]
 TIER1 = config["tier1"]
-# TIER2 = config["tier2"]
-# TIER3 = config["tier3"]
+TIER2 = config["tier2"]
+TIER3 = config["tier3"]
 TIER23 = config["tier23"]
 
 ODIR = config["out"] # os.getcwd()
@@ -18,9 +18,9 @@ DIPBED = pjoin(ODIR, "dipcall.bed")
 # dipcall confidence on tier 1
 DIPBED1 = pjoin(ODIR, "dipcall.1.bed")
 # dipcall confidence on tier 2
-#DIPBED2 = pjoin(ODIR, "dipcall.2.bed")
+DIPBED2 = pjoin(ODIR, "dipcall.2.bed")
 # dipcall confidence on tier 3
-#DIPBED3 = pjoin(ODIR, "dipcall.3.bed")
+DIPBED3 = pjoin(ODIR, "dipcall.3.bed")
 # dipcall confidence on tier 23
 DIPBED23 = pjoin(ODIR, "dipcall.23.bed")
 
