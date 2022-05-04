@@ -2,4 +2,4 @@ name: debreak-sm
 channels:
   - bioconda
 dependencies:
-  - debreak
+  - debreak=1.0.2
