@@ -160,7 +160,7 @@ rule cutesv:
         mkdir -p {params.wdir}
         cuteSV -t {threads} -s 2 --max_cluster_bias_INS 1000 --diff_ratio_merging_INS 0.9 --max_cluster_bias_DEL 1000 --diff_ratio_merging_DEL 0.5 {input.bam} {input.fa} {output.vcf} {params.wdir}
         """
-# -l 30
+# -l 30 --genotype
 
 rule cutesv_post:
     input:

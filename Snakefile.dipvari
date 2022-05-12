@@ -55,6 +55,7 @@ rule format_table:
         expand(pjoin(ODIR, "{{aligner}}", "truvari", "{caller}", "{mode}"),
             caller = callers,
             mode = modes)
+        # truvari-wgt
     output:
         csv = pjoin(ODIR, "{aligner}", "results.csv")
     params:
@@ -166,3 +167,4 @@ rule truvari:
         """
         truvari bench -c {input.vcf} -b {input.truth} -o {output} -f {input.fa} {params.bed_flag} --passonly -r 1000 -p 0.00
         """
+# truvari-wgt > --gtcomp
