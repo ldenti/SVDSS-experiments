@@ -25,12 +25,17 @@ wget https://hgdownload.cse.ucsc.edu/goldenpath/hg38/bigZips/hg38.fa.gz
 gunzip hg38.fa.gz
 samtools faidx hg38.fa chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr20 chr21 chr22 chrX chrY > hg38.chroms.fa
 sed -i '/^[^>]/ y/BDEFHIJKLMNOPQRSUVWXYZbdefhijklmnopqrsuvwxyz/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN/' hg38.chroms.fa
+samtools faidx hg38.chroms.fa
+cut -f1,2 hg38.chroms.fa.fai | sort -k 1 > hg38.chroms.fa.genome
 
 # GIAB tiers
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
 sed -e 's/^/chr/' HG002_SVs_Tier1_v0.6.bed > Tier1_v0.6.hg19.bed
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/liftOver
+chmod +x liftOver
 wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
-liftOver Tier1_v0.6.hg19.bed hg19ToHg38.over.chain Tier1_v0.6.bed Tier1_v0.6.unlifted.bed
+gunzip hg19ToHg38.over.chain.gz
+./liftOver Tier1_v0.6.hg19.bed hg19ToHg38.over.chain Tier1_v0.6.hg38.bed Tier1_v0.6.unlifted.bed
 for c in $(seq 1 22) X Y ; do grep -P "^chr${c}\t" Tier1_v0.6.hg38.bed ; done | sort -k1,1 -k2,2n > Tier1_v0.6.hg38.noalt.bed
 bedtools complement -i Tier1_v0.6.hg38.noalt.bed -g hg38.chroms.genome > Tier23_v0.6.hg38.noalt.bed
 
