@@ -41,7 +41,7 @@ wget https://raw.githubusercontent.com/PacificBiosciences/pbsv/master/annotation
 
 #### Tiers
 In our paper we used the Tier 1 from GIAB and then we created an Extended Tier 2, that is everything outside Tier 1. Tier 1 is downloaded from GIAB FTP server and lifted to hg38. Extended Tier 2 (here called Tier23) is computed by complementing Tier 1.
-```
+```bash
 # Get Tier 1 and lift to hg38
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
 sed -e 's/^/chr/' HG002_SVs_Tier1_v0.6.bed > Tier1_v0.6.hg19.bed
@@ -83,7 +83,7 @@ Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-pu
 * [HG007.asm.hap2.p_ctg.fa](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/analysis/genome_assembly/hg007_15kb/two_smrt_cells/dc/HG007.asm.hap2.p_ctg.fa)
 
 Change `config.yaml` accordingly and run:
-```
+```bash
 # Mappers + callers
 snakemake --use-conda [-n] -p -j 16
 # Dipcall and truvari
@@ -91,7 +91,7 @@ snakemake -s Snakefile.dipvari [-n] -p -j 8
 ```
 
 #### Coverage titration for 5x and 10x
-```
+```bash
 samtools view -b -s 0.3 /path/to/out/dir/pbmm2.bam > pbmm2.5x.bam
 samtools fastq pbmm2.5x.bam > pbmm2.5x.fq
 # change config.yaml
@@ -106,13 +106,13 @@ snakemake -s Snakefile.dipvari -p -j 8
 ```
 
 To plot results, assuming `${OUT-*}` to be the output folders set in `config.yaml`, run:
-```
+```bash
 python3 plot_coverage.py ${OUT-5x}/pbmm2/results.csv ${OUT-10x}/pbmm2/results.csv ${OUT}/pbmm2/results.csv
 ```
 
 #### Other plots
 Assuming `${OUT}` to be the output folder set in `config.yaml`:
-```
+```bash
 # VCF length distribution
 python3 plot_vcflen.py ${OUT}
 
@@ -131,10 +131,25 @@ Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-pu
 
 Update `config.yaml` accordingly and run `snakemake`.
 
+#### CMRG analysis
+To compare the callsets to the CMRG callset:
+```bash
+# Download the CMRG callset
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz.tbi
+
+# Run truvari against the CMRG callset (assuming ${HG2-OUT} to be the output folder for the HG002 analysis)
+for t in pp cutesv pbsv svim sniffles debreak ; do truvari bench -b HG002_GRCh38_CMRG_SV_v1.00.vcf.gz -c ${HG2-OUT}/pbmm2/${t}.vcf.gz -o ${t} -f ~/data/hg38-refanno/hg38.chroms.fa -r 1000 -p 0.00 -s 20 -S 20 ; done
+
+# Plot the CMRG venn and supervenn
+python3 medical_analysis.py . # . is the folder with the folders created by truvari in the previous cycle
+```
 
 #### GIAB vs dipcall analysis
+To compare the tools against the GIAB callset, download the hg19 data and run the pipeline.
+
 Download (hg19) reference and annotations:
-```
+```bash
 wget ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/reference/phase2_reference_assembly_sequence/hs37d5.fa.gz
 gunzip hs37d5.fa.gz
 # Extract chromosomes
@@ -144,7 +159,9 @@ sed -i '/^[^>]/ y/BDEFHIJKLMNOPQRSUVWXYZbdefhijklmnopqrsuvwxyz/NNNNNNNNNNNNNNNNN
 
 # Get hg19 PAR region from dipcall repository:
 wget https://raw.githubusercontent.com/lh3/dipcall/master/data/hs37d5.PAR.bed
-
+```
+Download GIAB Tier 1 and complement it:
+```bash
 # Get GIAB VCF and tiers:
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz.tbi
@@ -153,8 +170,8 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NI
 bedtools complement -i HG002_SVs_Tier1_v0.6.bed -g hs37d5.chroms.fa.fai > HG002_SVs_Tier23_v0.6.bed
 ```
 
-Update `config.yaml` accordingly (see `config-hg19.yaml`, i.e., everything should point to hg19 and a new output directory) and:
-```
+Then, update `config.yaml` accordingly (see `config-hg19.yaml`, i.e., everything should point to hg19 and a new output directory) and:
+```bash
 # run everything on the older reference release
 snakemake --use-conda -p -j 16
 # compare the new results with dipcall (against hg19)
@@ -164,18 +181,6 @@ snakemake -s Snakefile.giabvari -p -j 8
 
 # Heterozygosity plot
 python3 plot_hetebars.py {dipcall.clean.vcf.gz} {GIAB.clean.vcf.gz} ${OUT}/pbmm2/
-```
-
-#### CMRG analysis
-```
-# Download the CMRG callset
-wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz
-wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz.tbi
-
-# Run truvari against the CMRG callset (assuming ${HG2-OUT} to be the output folder for the HG002 analysis)
-for t in pp cutesv pbsv svim sniffles debreak ; do truvari bench -b HG002_GRCh38_CMRG_SV_v1.00.vcf.gz -c ${HG2-OUT}/pbmm2/${t}.vcf.gz -o ${t} -f ~/data/hg38-refanno/hg38.chroms.fa -r 1000 -p 0.00 -s 20 -S 20 ; done
-# CMRG venn and supervenn
-python3 medical_analysis.py . # . is the folder with the folders created by truvari in the previous cycle
 ```
 
 ## CHM13
