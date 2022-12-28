@@ -1,14 +1,15 @@
 # SVDSS experiments
 
 ## Prerequisites
-Install tools:
-```
+### Tools
+```bash
 conda install minimap2 pbsv=2.6.2 sniffles=1.0.12 cutesv=1.0.11 svim=1.4.2 dipcall samtools bcftools pysam biopython numpy pandas seaborn
 pip3 install truvari
 
 # We need ngmlr v0.2.8 (master) due to a bug in previous releases (not yet in conda at the time of the experiments)
 git clone https://github.com/philres/ngmlr.git
 cd ngmlr
+git checkout a2a31fb6a63547be29c5868a7747e0c6f6e9e41f
 mkdir build ; cd build
 cmake ..
 make
@@ -18,8 +19,11 @@ make
 # clone and install SVDSS from https://github.com/Parsoa/SVDSS
 ```
 
-Download (hg38) reference and annotations:
-```
+### Data
+In our experimental evaluation we used hg38.
+
+#### Reference and annotations
+```bash
 # Reference
 wget https://hgdownload.cse.ucsc.edu/goldenpath/hg38/bigZips/hg38.fa.gz
 gunzip hg38.fa.gz
@@ -28,17 +32,6 @@ sed -i '/^[^>]/ y/BDEFHIJKLMNOPQRSUVWXYZbdefhijklmnopqrsuvwxyz/NNNNNNNNNNNNNNNNN
 samtools faidx hg38.chroms.fa
 cut -f1,2 hg38.chroms.fa.fai | sort -k 1 > hg38.chroms.fa.genome
 
-# GIAB tiers
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
-sed -e 's/^/chr/' HG002_SVs_Tier1_v0.6.bed > Tier1_v0.6.hg19.bed
-wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/liftOver
-chmod +x liftOver
-wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
-gunzip hg19ToHg38.over.chain.gz
-./liftOver Tier1_v0.6.hg19.bed hg19ToHg38.over.chain Tier1_v0.6.hg38.bed Tier1_v0.6.unlifted.bed
-for c in $(seq 1 22) X Y ; do grep -P "^chr${c}\t" Tier1_v0.6.hg38.bed ; done | sort -k1,1 -k2,2n > Tier1_v0.6.hg38.noalt.bed
-bedtools complement -i Tier1_v0.6.hg38.noalt.bed -g hg38.chroms.genome > Tier23_v0.6.hg38.noalt.bed
-
 # Dipcall PAR
 wget https://raw.githubusercontent.com/lh3/dipcall/master/data/hs38.PAR.bed
 
@@ -46,25 +39,43 @@ wget https://raw.githubusercontent.com/lh3/dipcall/master/data/hs38.PAR.bed
 wget https://raw.githubusercontent.com/PacificBiosciences/pbsv/master/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 ```
 
-### config.yaml
-The file `config.yaml` is used to tweak snakemake execution:
+#### Tiers
+In our paper we used the Tier 1 from GIAB and then we created an Extended Tier 2, that is everything outside Tier 1. Tier 1 is downloaded from GIAB FTP server and lifted to hg38. Extended Tier 2 (here called Tier23) is computed by complementing Tier 1.
+```
+# Get Tier 1 and lift to hg38
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
+sed -e 's/^/chr/' HG002_SVs_Tier1_v0.6.bed > Tier1_v0.6.hg19.bed
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/liftOver
+chmod +x liftOver
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+gunzip hg19ToHg38.over.chain.gz
+./liftOver Tier1_v0.6.hg19.bed hg19ToHg38.over.chain Tier1_v0.6.hg38.bed Tier1_v0.6.unlifted.bed
+
+# Clean and sort bed to be able to complement it
+for c in $(seq 1 22) X Y ; do grep -P "^chr${c}\t" Tier1_v0.6.hg38.bed ; done | sort -k1,1 -k2,2n > Tier1_v0.6.hg38.noalt.bed
+bedtools complement -i Tier1_v0.6.hg38.noalt.bed -g hg38.chroms.genome > Tier23_v0.6.hg38.noalt.bed
+```
+
+#### Truth VCFs
+For users convenience, we provide the three VCFs computed with dipcall against hg38 and used as groundtruth in our analysis (see `truthsets` folder).
+
+#### config.yaml
+The experiments are provided as [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflows. The file `config.yaml` is used to tweak snakemake execution:
 * **name**: custom name for the run
-* **fa**: reference genome (i.e., _hs37d5.chroms.fa_)
+* **fa**: reference genome (i.e., _hg38.chroms.fa_)
 * **fq**: HiFi sample
 * **trf**: trf annotation
 * **par**: PAR regions
 * **hap1**: first haplotype
 * **hap2**: second haplotype
-* **tier1**: GIAB tier 1
+* **tier1**: GIAB Tier 1
+* **tier23**: Extended Tier 2
 * **out**: output directory (everything will go here)
-* **pingpong_bin**: path to PingPong binary
+* **pingpong_bin**: path to SVDSS binary
 * **ngmlr_bin**: path to ngmlr (v0.2.8) binary
 * **threads**: number of threads for each rule that requires more threads
 * **aligners**: list of aligners to use
 * **callers**: list of callers to use
-
-### Truth VCFs
-For users convenience, we provide the three VCFs computed with dipcall against hg38 and used as groundtruth in our analysis (see `truthsets` folder).
 
 ## HG007
 Download [corrected HiFi reads](https://storage.googleapis.com/brain-genomics-public/research/deepconsensus/publication/deepconsensus_predictions/hg007_15kb/three_smrt_cells/HG007_230654_115437_2fl_DC_hifi_reads.fastq) and corresponding haplotypes:
@@ -87,7 +98,6 @@ samtools fastq pbmm2.5x.bam > pbmm2.5x.fq
 snakemake --use-conda -p -j 16
 snakemake -s Snakefile.dipvari -p -j 8
 
-
 samtools view -b -s 0.6 /path/to/out/dir/pbmm2.bam > pbmm2.10x.bam
 samtools fastq pbmm2.10x.bam > pbmm2.10x.fq
 # change config.yaml
@@ -101,7 +111,6 @@ python3 plot_coverage.py ${OUT-5x}/pbmm2/results.csv ${OUT-10x}/pbmm2/results.cs
 ```
 
 #### Other plots
-
 Assuming `${OUT}` to be the output folder set in `config.yaml`:
 ```
 # VCF length distribution
@@ -140,6 +149,7 @@ wget https://raw.githubusercontent.com/lh3/dipcall/master/data/hs37d5.PAR.bed
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.vcf.gz.tbi
 wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/data/AshkenazimTrio/analysis/NIST_SVs_Integration_v0.6/HG002_SVs_Tier1_v0.6.bed
+# Here we just complement the Tier 1 to get the Extended Tier 2
 bedtools complement -i HG002_SVs_Tier1_v0.6.bed -g hs37d5.chroms.fa.fai > HG002_SVs_Tier23_v0.6.bed
 ```
 
@@ -164,9 +174,8 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/Ashkenazim
 
 # Run truvari against the CMRG callset (assuming ${HG2-OUT} to be the output folder for the HG002 analysis)
 for t in pp cutesv pbsv svim sniffles debreak ; do truvari bench -b HG002_GRCh38_CMRG_SV_v1.00.vcf.gz -c ${HG2-OUT}/pbmm2/${t}.vcf.gz -o ${t} -f ~/data/hg38-refanno/hg38.chroms.fa -r 1000 -p 0.00 -s 20 -S 20 ; done
-
 # CMRG venn and supervenn
-python3 medical_analysis.py .
+python3 medical_analysis.py . # . is the folder with the folders created by truvari in the previous cycle
 ```
 
 ## CHM13
